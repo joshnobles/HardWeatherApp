@@ -49,8 +49,6 @@
             await fetch(`?handler=Submit&ZipCode=${zip}`)
                 .then(res => res.json())
                 .then(json => {
-                    console.log(json)
-
                     if (json === 'invalid') {
                         error.textContent = 'Invalid Zip Code'
                         return
