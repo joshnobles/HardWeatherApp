@@ -1,0 +1,89 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="mt-5">
+    <h1>Secure Weather App</h1>
+    <div class="row">
+        <div class="col-5 float-start">
+            <div class="form-floating">
+                <input id="ZipCode" class="form-control" placeholder=" " />
+                <label for="ZipCode">Zip Code</label>
+                <div id="error" class="text-danger"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col float-start">
+            <button id="btnSubmit" class="btn btn-success" type="button">Submit</button>
+        </div>
+    </div>
+    <div id="result" class="mt-3"></div>
+</div>
+
+@section Scripts{
+
+    <script>
+
+        document.querySelector('#btnSubmit').addEventListener('click', () => {
+            Submit()
+        })
+
+        document.addEventListener('keypress', e => {
+            if (e.key === 'Enter')
+                Submit()
+        })
+
+        async function Submit() {
+
+            let zip = document.querySelector('#ZipCode').value
+
+            let error = document.querySelector('#error')
+            error.textContent = ''
+
+            let result = document.querySelector('#result')
+            result.textContent = ''
+
+            await fetch(`?handler=Submit&ZipCode=${zip}`)
+                .then(res => res.json())
+                .then(json => {
+                    console.log(json)
+
+                    if (json === 'invalid') {
+                        error.textContent = 'Invalid Zip Code'
+                        return
+                    }
+
+                    if (json === 'error') {
+                        error.textContent = 'Could Not Get Weather'
+                        return
+                    }
+
+                    if (json === "404") {
+                        error.textContent = 'City Not Found'
+                        return
+                    }
+
+                    result.innerHTML = `<h3 class="mb-4">Three day forecast for ${json.city}:</h3>`
+
+                    for (let day of json.forecast){
+
+                        let date = new Date(day.dt * 1000)
+
+                        result.innerHTML += '<ul class="list-group">'
+                        result.innerHTML += `<li class="list-group-item"><h5>${date.toLocaleDateString('en-us', { weekday: "long", year: "numeric", month: "short", day: "numeric" })}</h5></li>`
+                        result.innerHTML += `<li class="list-group-item"><div class="row"><div class="col-2"><strong>Weather:</strong></div><div class="col-4">${day.weather[0].description}</div></div></li>`
+                        result.innerHTML += `<li class="list-group-item"><div class="row"><div class="col-2"><strong>Temperature:</strong></div><div class="col-4">${day.main.temp} F</div></div></li>`
+                        result.innerHTML += `<li class="list-group-item"><div class="row"><div class="col-2"><strong>Wind Speed:</strong></div><div class="col-4">${day.wind.speed} mph</div></div></li>`
+                        result.innerHTML += '</ul>'
+                        result.innerHTML += '<br>'
+                    }
+
+                })
+        }
+
+    </script>
+
+}
